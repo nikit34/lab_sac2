@@ -21,9 +21,47 @@
 \section{Приведение уравнения поверхности второго рода к каноническому виду}
 
 
-Матричный вид:
+\begin{sagesilent}
+    # Точность вычислений (знаков после запятой)
+    accurcity = 10
 
-$\sage{LatexExpr("A = " + latex(A))}$
+    # Границы для трёхмерного графика
+    plot_range = 10.0
+
+    u(x, y, z) = 6*x^2 + 12*x*y + 7*y^2 + 2*x*z + 3*z^2 + 5*x + 5*y + 5*z - 18
+\end{sagesilent}
+
+Исходное уравнение поверхности второго рода:
+
+$\sage{u(x, y, z)} = 0$
+
+\begin{sagesilent}
+    # Из уравнения поверхности получим коэффициенты
+    a11 = 6
+    a22 = 7
+    a33 = 3
+
+    a12 = 6
+    a13 = 1
+    a23 = 0
+
+    a0 = -18
+    a1 = 5 / 2
+    a2 = 5 / 2
+    a3 = 5 / 2
+
+    A = matrix([
+        [a11, a12, a13],
+        [a12, a22, a23],
+        [a13, a23, a33]
+    ])
+
+    a = vector([a1, a2, a3])
+\end{sagesilent}
+
+Матричный вид уравнения:
+
+$\sage{LatexExpr("(A|a) = " + latex(A) + latex(a) + "^T")}$
 
 И вектор линейных коэффициентов:
 
@@ -32,8 +70,9 @@ $\sage{LatexExpr("a = " + latex(a))}$
 \begin{sagesilent}
     # Характеристический многочлен
     var("z")
-    matrAm = matrA - z * identity_matrix(3)
-    detA = det(matrAm).simplify_full()
+    detA = A - z * identity_matrix(3) 
+    detA = det(detA).simplify_full()
+
 \end{sagesilent}
 
 Составим характеристический многочлен:
@@ -42,89 +81,91 @@ $\sage{LatexExpr(r'\det(A - z * E) = ' + latex(detA))}$
 
 \begin{sagesilent}
     # Собственные числа
-    solutions = solve(detA == 0, z)
-    eigenvalues = []
-    for i in range(len(solutions)):
-        if (solutions[i].rhs().imag().n(digits = acc) < 10 ** -acc):
-            eigenvalues.append(solutions[i].rhs().real().n(digits = acc))
+    roots = solve(detA == 0, z)
+    eigens = []
+
+    for i, root in enumerate(roots):
+        if (root.rhs().imag().n(digits = accurcity) < 10 ** -accurcity):
+            eigens.append(root.rhs().real().n(digits = accurcity))
 \end{sagesilent}
 
 Корни характеристического уравнения:
 
-$\sage{LatexExpr("z_0 = " + str(eigenvalues[0]) + r', z_1 = ' + str(eigenvalues[1]) + r', z_2 = ' + str(eigenvalues[2]))}$
+$\sage{LatexExpr("z_0 = " + str(eigens[0]) + r', z_1 = ' + str(eigens[1]) + r', z_2 = ' + str(eigens[2]))}$
 
 \begin{sagesilent}
     # Собственные вектора
     eigenvectors = []
     var("x1 x2 x3")
-    for i in range(len(eigenvalues)):
-        matrAmzE = matrA - eigenvalues[i] * identity_matrix(3)
-        system_of_equations = []
+
+    for i, eigen in enumerate(eigens):
+        dotA = A - eigen * identity_matrix(3)    
+        equations = []
         for j in range(3):
-            system_of_equations.append(matrAmzE[j][0] * x1 + matrAmzE[j][1] * x2 + matrAmzE[j][2] * x3 == 0)
-        # Решаем систему уравнений методом Гаусса
-        system_of_equations[1] = system_of_equations[1] - system_of_equations[0] * matrAmzE[1][0] / matrAmzE[0][0]
-        system_of_equations[2] = system_of_equations[2] - system_of_equations[0] * matrAmzE[2][0] / matrAmzE[0][0]
-        system_of_equations[2] = system_of_equations[2] - system_of_equations[1] * (system_of_equations[2].lhs() / system_of_equations[1].lhs())
-        # Проверяем, что ранг матрицы меньше трёх
-        if (system_of_equations[2].lhs() == 0 and system_of_equations[2].rhs() == 0):
-            system_of_equations[2] = (x3 == 1)
+            equations.append(dotA[j][0] * x1 + dotA[j][1] * x2 + dotA[j][2] * x3 == 0)
+
+        equations[1] = equations[1] - equations[0] * dotA[1][0] / dotA[0][0]
+        equations[2] = equations[2] - equations[0] * dotA[2][0] / dotA[0][0]
+        equations[2] = equations[2] - equations[1] * (equations[2].lhs() / equations[1].lhs())
+
+        if (equations[2].lhs() == 0 and equations[2].rhs() == 0):
+            equations[2] = (x3 == 1)
         else:
             print("Ранг матрицы равен трём")
-        eigenvec = vector([j.rhs().n(digits = acc) for j in solve(system_of_equations, x1, x2, x3)[0]])
-        ans = matrAmzE * eigenvec
-        eigenvectors.append(eigenvec.n(digits = acc))
+        eigenvec = vector([j.rhs().n(digits = accurcity) for j in solve(equations, x1, x2, x3)[0]])
+        ans = dotA * eigenvec
+        eigenvectors.append(eigenvec.n(digits = accurcity))
 \end{sagesilent}
 
 Получим собственные векторы:
 
-$\sage{LatexExpr(r'\lambda_0 = ' + str(eigenvalues[0].n(digits = acc)) + ', s_0 = ' + str(eigenvectors[0].n(digits = acc)))}$
+$\sage{LatexExpr(r'\lambda_0 = ' + str(eigens[0].n(digits = accurcity)) + ', s_0 = ' + str(eigens[0].n(digits = accurcity)))}$
 
-$\sage{LatexExpr(r'\lambda_1 = ' + str(eigenvalues[1].n(digits = acc)) + ', s_1 = ' + str(eigenvectors[1].n(digits = acc)))}$
+$\sage{LatexExpr(r'\lambda_1 = ' + str(eigens[1].n(digits = accurcity)) + ', s_1 = ' + str(eigenvec[1].n(digits = accurcity)))}$
 
-$\sage{LatexExpr(r'\lambda_2 = ' + str(eigenvalues[2].n(digits = acc)) + ', s_2 = ' + str(eigenvectors[2].n(digits = acc)))}$
+$\sage{LatexExpr(r'\lambda_2 = ' + str(eigens[2].n(digits = accurcity)) + ', s_2 = ' + str(eigenvec[2].n(digits = accurcity)))}$
 
 \begin{sagesilent}
     # Получим матрицу перехода
-    matrS = matrix(eigenvectors)
+    S = matrix(eigenvectors)
 \end{sagesilent}
 
 Получим матрицу перехода к диагональной матрице
 
-$\sage{LatexExpr("S = " + latex(matrS.n(digits = acc)))}$
+$\sage{LatexExpr("S = " + latex(S.n(digits = accurcity)))}$
 
 \begin{sagesilent}
     # Нормируем собсветнные векторы
     for i in range(len(eigenvectors)):
         eigenvectors[i] = eigenvectors[i] / sqrt(eigenvectors[i].dot_product(eigenvectors[i]))
-    matrS = matrix(eigenvectors)
+    S = matrix(eigenvectors)
 \end{sagesilent}
 
 После нормировки собственных векторов матрица перехода имеет вид:
 
-$\sage{LatexExpr("S^* = " + latex(matrS.n(digits = acc)))}$
+$\sage{LatexExpr("S^* = " + latex(S.n(digits = accurcity)))}$
 
 \begin{sagesilent}
-    matrAdiag = matrS * matrA * matrS.T
+    diagA = S * A * S.T
 \end{sagesilent}
 
 Приводя к диагональному виду:
 
-$\sage{LatexExpr("S^{*} * A * {S^{*}}^T = " + latex(matrAdiag.n(digits = acc)))}$
+$\sage{LatexExpr("S^{*} * A * {S^{*}}^T = " + latex(diagA.n(digits = accurcity)))}$
 
 \begin{sagesilent}
-    vecAnew = matrS.T * vecA
+    a1 = S.T * a
 \end{sagesilent}
 
 Новый вектор линейных коэффициентов:
 
-$\sage{vecAnew}$
+$\sage{a1}$
 
 \begin{sagesilent}
     v(x, y, z) = 0
     variables = [x, y, z]
     for i in range(len(variables)):
-        v += matrAdiag[i][i] * variables[i] ^ 2 + variables[i] * vecAnew[i]
+        v += diagA[i][i] * variables[i] ^ 2 + variables[i] * a1[i]
 \end{sagesilent}
 
 После приведения к каноническому виду получим:
@@ -134,14 +175,14 @@ $\sage{v(x, y, z) == 0}$
 \begin{sagesilent}
     # Сделаем замену переменных
     coef_linear = []
-    for i in range(len(vecAnew)):
-        coef_linear.append((vecAnew[i] / (2 * matrAdiag[i][i])) ** 2)
-        if (matrAdiag[i][i] * vecAnew[i] < 0):
+    for i in range(len(a1)):
+        coef_linear.append((a1[i] / (2 * diagA[i][i])) ** 2)
+        if (diagA[i][i] * a1[i] < 0):
             coef_linear[-1] = -coef_linear[-1]
     v(x, y, z) = a0
     variables = [x, y, z]
     for i in range(len(variables)):
-        v += matrAdiag[i][i] * (variables[i] + coef_linear[i]) ^ 2 - matrAdiag[i][i] * abs(coef_linear[i])
+        v += diagA[i][i] * (variables[i] + coef_linear[i]) ^ 2 - diagA[i][i] * abs(coef_linear[i])
 \end{sagesilent}
 
 Сделаем замену переменных, получим:
