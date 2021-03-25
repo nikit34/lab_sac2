@@ -93,6 +93,12 @@ $\sage{LatexExpr(r'\det(A - z * E) = ' + latex(detA))}$
 
 $\sage{LatexExpr("z_0 = " + str(eigens[0]) + r', z_1 = ' + str(eigens[1]) + r', z_2 = ' + str(eigens[2]))}$
 
+
+
+Проверка через метод
+$\sage{LatexExpr(latex(A.eigenvalues()))}$
+
+
 \begin{sagesilent}
     # Собственные вектора
     eigenvectors = []
@@ -130,23 +136,27 @@ $\sage{LatexExpr(r'\lambda_2 = ' + str(eigens[2].n(digits = accurcity)) + ', s_2
     S = matrix(eigenvectors)
 \end{sagesilent}
 
+
+Проверка через метод
+$\sage{LatexExpr(latex(A.eigenvectors_right()))}$
+
 Получим матрицу перехода к диагональной матрице
 
 $\sage{LatexExpr("S = " + latex(S.n(digits = accurcity)))}$
 
 \begin{sagesilent}
     # Нормируем собсветнные векторы
-    for i in range(len(eigenvectors)):
-        eigenvectors[i] = eigenvectors[i] / sqrt(eigenvectors[i].dot_product(eigenvectors[i]))
-    S = matrix(eigenvectors)
+for i in range(len(eigenvectors)):
+    eigenvectors[i] = eigenvectors[i] / sqrt(eigenvectors[i].dot_product(eigenvectors[i]))
+    normirS = matrix(eigenvectors)
 \end{sagesilent}
 
 После нормировки собственных векторов матрица перехода имеет вид:
 
-$\sage{LatexExpr("S^* = " + latex(S.n(digits = accurcity)))}$
+$\sage{LatexExpr("S^* = " + latex(normirS.n(digits = accurcity)))}$
 
 \begin{sagesilent}
-    diagA = S * A * S.T
+    diagA = normirS * A * normirS.T
 \end{sagesilent}
 
 Приводя к диагональному виду:
@@ -154,7 +164,7 @@ $\sage{LatexExpr("S^* = " + latex(S.n(digits = accurcity)))}$
 $\sage{LatexExpr("S^{*} * A * {S^{*}}^T = " + latex(diagA.n(digits = accurcity)))}$
 
 \begin{sagesilent}
-    a1 = S.T * a
+    a1 = normirS.T * a
 \end{sagesilent}
 
 Новый вектор линейных коэффициентов:
@@ -200,7 +210,7 @@ $\sage{v(x, y, z) == 0}$
 
 График функции $\sage{v(x, y, z)} = 0$
 \begin{center}
-  \sageplot[trim=50 50 50 50, clip, width=10cm][png]{implicit_plot3d(v, (-plot_range, plot_range), (-plot_range, plot_range), (-plot_range, plot_range), color="orange")}
+  \sageplot[trim=50 50 50 50, clip, width=10cm][png]{implicit_plot3d(v, (-plot_range, plot_range), (-plot_range-26, plot_range-26), (-plot_range, plot_range), color="orange")}
 \end{center}
 
 \end{document}
